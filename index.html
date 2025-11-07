@@ -4,118 +4,232 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebRTC Video/Text Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #00d1ff;
+            --primary-glow: rgba(0, 209, 255, 0.5);
+            --danger-color: #ff4757;
+            --danger-glow: rgba(255, 71, 87, 0.5);
+            --bg-dark: #0a192f;
+            --bg-light: #112240;
+            --text-primary: #ccd6f6;
+            --text-secondary: #8892b0;
+            --border-color: #233554;
+            --border-radius: 6px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 10px;
         }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
         .container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 680px;
+            gap: 20px;
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 780px;
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.7);
         }
+
         .video-grid {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
-        video {
-            width: 320px;
-            height: 240px;
-            background-color: #000;
-            border: 1px solid #ccc;
+
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .video-wrapper:hover {
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .video-wrapper h3 {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            margin: 0;
+            color: var(--text-primary);
+            background: rgba(10, 25, 47, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 5px 10px;
             border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 400;
+            z-index: 1;
         }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         .controls, .chat-controls {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             justify-content: center;
+            flex-wrap: wrap;
         }
-        .id-section { font-size: 1.1em; }
-        #my-id { font-weight: bold; color: #007bff; user-select: all; }
+
+        .id-section {
+            font-size: 1em;
+            background: var(--bg-dark);
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        #my-id {
+            font-weight: 500;
+            color: var(--primary-color);
+            user-select: all;
+            padding: 2px 5px;
+        }
+
         input[type="text"] {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        #peer-id-input { width: 150px; }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        #peer-id-input { width: 200px; }
+
         button {
-            padding: 8px 15px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border: 1px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            border-radius: var(--border-radius);
             cursor: pointer;
             font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
         }
-        button:hover { background-color: #0056b3; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        #hangup-btn { background-color: #dc3545; }
-        #hangup-btn:hover { background-color: #c82333; }
+
+        button:hover {
+            background-color: rgba(0, 209, 255, 0.1);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled {
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            background-color: transparent;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #hangup-btn {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        #hangup-btn:hover {
+            background-color: rgba(255, 71, 87, 0.1);
+            box-shadow: 0 0 15px var(--danger-glow);
+        }
+
         #chat-box {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            height: 150px;
-            padding: 10px;
-            overflow-y: scroll;
-            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            height: 220px;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
+
+        .chat-message {
+            padding: 8px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-weight: 300;
+        }
+
+        .chat-message.self {
+            background-color: var(--primary-color);
+            color: var(--bg-dark);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-message.remote {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        
+        .chat-message.system {
+            color: var(--text-secondary);
+            align-self: center;
+            font-style: italic;
+            font-size: 0.9em;
+            background: transparent;
+        }
+
         #chat-input { flex-grow: 1; }
 
         @media (max-width: 768px) {
-            body {
-                height: auto;
-                padding: 10px;
-            }
-            .container {
-                width: 95%;
-                padding: 10px;
-            }
             .video-grid {
-                flex-direction: column;
-                align-items: center;
+                grid-template-columns: 1fr;
             }
-            video {
-                width: 100%;
-                height: auto;
-            }
-            .controls, .chat-controls {
+            .controls {
                 flex-direction: column;
-                gap: 8px;
+                align-items: stretch;
             }
             #peer-id-input {
-                width: 80%;
-            }
-            h1 {
-                font-size: 1.5em;
-            }
-        }
-
-        @media (max-width: 360px) {
-            h1 {
-                font-size: 1.2em;
-            }
-            h3 {
-                font-size: 1em;
-            }
-            button, input[type="text"] {
-                font-size: 0.9em;
-                padding: 6px 10px;
-            }
-            .id-section {
-                font-size: 1em;
+                width: 100%;
             }
         }
     </style>
@@ -125,11 +239,11 @@
     <h1>H5 视频/文字聊天</h1>
     <div class="container">
         <div id="video-container" class="video-grid">
-            <div>
+            <div class="video-wrapper">
                 <h3>你的视频</h3>
                 <video id="local-video" autoplay muted></video>
             </div>
-            <div>
+            <div class="video-wrapper">
                 <h3>对方视频</h3>
                 <video id="remote-video" autoplay></video>
             </div>
@@ -171,9 +285,19 @@
             callBtn.disabled = false;
         });
 
-        function appendMessage(sender, message) {
+        function appendMessage(sender, message, type) {
             const msgDiv = document.createElement('div');
-            msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            msgDiv.classList.add('chat-message', type);
+            
+            if (type === 'system') {
+                msgDiv.textContent = message;
+            } else {
+                const senderSpan = document.createElement('strong');
+                senderSpan.textContent = `${sender}: `;
+                msgDiv.appendChild(senderSpan);
+                msgDiv.append(message);
+            }
+
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -187,15 +311,14 @@
                 hangupBtn.disabled = false;
             });
             dataConnection.on('data', data => {
-                appendMessage('对方', data);
+                appendMessage('对方', data, 'remote');
             });
             dataConnection.on('close', () => {
                 console.log('Data connection closed.');
                 chatInput.disabled = true;
                 sendBtn.disabled = true;
-                hangupBtn.disabled = true;
                 remoteVideo.srcObject = null;
-                appendMessage('系统', '对方已断开连接。');
+                appendMessage(null, '对方已断开连接。', 'system');
             });
         }
 
@@ -207,7 +330,7 @@
             })
             .catch(err => {
                 console.error('Failed to get local stream', err);
-                videoContainer.innerHTML = '<p style="text-align: center; color: red;">无法访问摄像头，已进入纯文字聊天模式。</p>';
+                videoContainer.innerHTML = '<p style="text-align: center; color: var(--danger-color);">无法访问摄像头，已进入纯文字聊天模式。</p>';
                 return null;
             });
 
@@ -251,6 +374,7 @@
                     mediaConnection.on('close', () => {
                         remoteVideo.srcObject = null;
                     });
+                    hangupBtn.disabled = false;
                 } else {
                     console.log('Rejecting media call because no local stream is available.');
                     call.close();
@@ -262,7 +386,7 @@
             const msg = chatInput.value;
             if (msg && dataConnection) {
                 dataConnection.send(msg);
-                appendMessage('我', msg);
+                appendMessage('我', msg, 'self');
                 chatInput.value = '';
             }
         });
@@ -276,6 +400,7 @@
         hangupBtn.addEventListener('click', () => {
             if (dataConnection) dataConnection.close();
             if (mediaConnection) mediaConnection.close();
+            hangupBtn.disabled = true;
         });
 
         peer.on('error', err => {
