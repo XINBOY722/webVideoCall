@@ -96,8 +96,8 @@
                 <span id="my-id">正在获取...</span>
             </div>
             <div>
-                <input type="text" id="peer-id-input" placeholder="输入对方ID">
-                <button id="call-btn">呼叫</button>
+                <input type="text" id="peer-id-input" placeholder="输入对方ID" disabled>
+                <button id="call-btn" disabled>呼叫</button>
             </div>
         </div>
     </div>
@@ -127,6 +127,10 @@
                 .then(stream => {
                     localStream = stream;
                     localVideo.srcObject = stream;
+
+                    // 本地视频流准备好后，启用呼叫控件
+                    peerIdInput.disabled = false;
+                    callBtn.disabled = false;
                 })
                 .catch(err => {
                     console.error('Failed to get local stream', err);
