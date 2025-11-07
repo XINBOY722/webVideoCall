@@ -73,6 +73,51 @@
             background-color: #f9f9f9;
         }
         #chat-input { flex-grow: 1; }
+
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                padding: 10px;
+            }
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+            .video-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            video {
+                width: 100%;
+                height: auto;
+            }
+            .controls, .chat-controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+            #peer-id-input {
+                width: 80%;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+
+        @media (max-width: 360px) {
+            h1 {
+                font-size: 1.2em;
+            }
+            h3 {
+                font-size: 1em;
+            }
+            button, input[type="text"] {
+                font-size: 0.9em;
+                padding: 6px 10px;
+            }
+            .id-section {
+                font-size: 1em;
+            }
+        }
     </style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
