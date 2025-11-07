@@ -154,14 +154,16 @@
             });
         }
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        const streamPromise = navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(stream => {
                 localStream = stream;
                 localVideo.srcObject = stream;
+                return stream;
             })
             .catch(err => {
                 console.error('Failed to get local stream', err);
                 videoContainer.innerHTML = '<p style="text-align: center; color: red;">无法访问摄像头，已进入纯文字聊天模式。</p>';
+                return null;
             });
 
         callBtn.addEventListener('click', () => {
@@ -194,18 +196,21 @@
 
         peer.on('call', call => {
             console.log('Incoming media call...');
-            if (localStream) {
-                mediaConnection = call;
-                mediaConnection.answer(localStream);
-                mediaConnection.on('stream', remoteStream => {
-                    remoteVideo.srcObject = remoteStream;
-                });
-                mediaConnection.on('close', () => {
-                    remoteVideo.srcObject = null;
-                });
-            } else {
-                console.log('Cannot answer call, no local stream available.');
-            }
+            streamPromise.then(stream => {
+                if (stream) {
+                    mediaConnection = call;
+                    mediaConnection.answer(stream);
+                    mediaConnection.on('stream', remoteStream => {
+                        remoteVideo.srcObject = remoteStream;
+                    });
+                    mediaConnection.on('close', () => {
+                        remoteVideo.srcObject = null;
+                    });
+                } else {
+                    console.log('Rejecting media call because no local stream is available.');
+                    call.close();
+                }
+            });
         });
 
         sendBtn.addEventListener('click', () => {
