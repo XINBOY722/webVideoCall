@@ -58,44 +58,52 @@
             box-shadow: 0 10px 30px -15px rgba(0,0,0,0.7);
         }
 
-        .video-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .video-wrapper {
+        .video-container {
             position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
             background: #000;
             border-radius: var(--border-radius);
             overflow: hidden;
             border: 1px solid var(--border-color);
-            transition: box-shadow 0.3s ease;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .video-wrapper.main-video {
+            z-index: 1;
+            height: 100%;
+        }
+
+        .video-wrapper.pip-video {
+            position: absolute;
+            width: 30%;
+            aspect-ratio: 16 / 9;
+            top: 15px;
+            right: 15px;
+            z-index: 2;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            overflow: hidden;
         }
         
-        .video-wrapper:hover {
+        .video-wrapper.pip-video:hover {
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        .video-wrapper h3 {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            margin: 0;
-            color: var(--text-primary);
-            background: rgba(10, 25, 47, 0.7);
-            backdrop-filter: blur(5px);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            font-weight: 400;
-            z-index: 1;
-        }
-
         video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
+            height: 100%;
             display: block;
+            object-fit: cover;
         }
 
         .controls, .chat-controls {
@@ -221,9 +229,6 @@
         #chat-input { flex-grow: 1; }
 
         @media (max-width: 768px) {
-            .video-grid {
-                grid-template-columns: 1fr;
-            }
             .controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -238,14 +243,12 @@
 <body>
     <h1>H5 视频/文字聊天</h1>
     <div class="container">
-        <div id="video-container" class="video-grid">
-            <div class="video-wrapper">
-                <h3>你的视频</h3>
-                <video id="local-video" autoplay muted></video>
+        <div id="video-container" class="video-container">
+            <div id="remote-video-wrapper" class="video-wrapper main-video">
+                <video id="remote-video" autoplay playsinline></video>
             </div>
-            <div class="video-wrapper">
-                <h3>对方视频</h3>
-                <video id="remote-video" autoplay></video>
+            <div id="local-video-wrapper" class="video-wrapper pip-video">
+                <video id="local-video" autoplay muted playsinline></video>
             </div>
         </div>
         <div class="controls">
@@ -274,7 +277,22 @@
         const sendBtn = document.getElementById('send-btn');
         const videoContainer = document.getElementById('video-container');
 
-        const peer = new Peer();
+        videoContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.pip-video')) {
+                const mainVideo = document.querySelector('.main-video');
+                const pipVideo = document.querySelector('.pip-video');
+
+                mainVideo.classList.remove('main-video');
+                mainVideo.classList.add('pip-video');
+                
+                pipVideo.classList.remove('pip-video');
+                pipVideo.classList.add('main-video');
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const customId = urlParams.get('id');
+        const peer = customId ? new Peer(customId) : new Peer();
         let localStream;
         let mediaConnection;
         let dataConnection;
